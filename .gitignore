@@ -1,0 +1,35 @@
+# Maven
+/target/
+**/target/
+!.mvn/wrapper/maven-wrapper.jar
+
+# IntelliJ
+*.iml
+*.iws
+*.ipr
+.idea/
+
+# Eclipse
+.settings/
+.project
+.classpath
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Generated files
+*.class
+
+# Spring Boot
+spring.log
+
+# H2 Database files
+**/hsqldb-data.log
+**/testdb.*
+
+# Maven Wrapper
+.mvn/wrapper/maven-wrapper.properties
