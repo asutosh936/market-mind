@@ -1,6 +1,8 @@
 package com.marketmind.service;
 
 import com.marketmind.model.MarketData;
+import com.marketmind.model.dto.PatternDto;
+import com.marketmind.model.dto.MarketDataWithPatternsDto;
 import com.marketmind.repository.MarketDataRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -9,14 +11,19 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class MarketDataService {
 
     private static final Logger logger = LoggerFactory.getLogger(MarketDataService.class);
+    private static final int HISTORY_SIZE = 5; // Last 5 candles for pattern context
 
     @Autowired
     private MarketDataRepository repository;
+
+    @Autowired
+    private PatternAnalysisService patternAnalysisService;
 
     public List<MarketData> findAll() {
         logger.debug("Fetching all market data records");
@@ -59,5 +66,63 @@ public class MarketDataService {
     public void deleteById(Long id) {
         logger.info("Deleting market data id={}", id);
         repository.deleteById(id);
+    }
+
+    /**
+     * Get market data with detected patterns.
+     * Analyzes current candle with historical context (last 5 candles).
+     * 
+     * @param marketData The current market data to analyze
+     * @param historicalData List of historical market data (ordered chronologically)
+     * @return MarketDataWithPatternsDto containing patterns detected
+     */
+    public MarketDataWithPatternsDto getWithPatterns(MarketData marketData, List<MarketData> historicalData) {
+        logger.debug("Analyzing patterns for symbol={}, timestamp={}, OHLCV: O={}, H={}, L={}, C={}, V={}", 
+                   marketData.getSymbol(), marketData.getTimestamp(),
+                   marketData.getOpenPrice(), marketData.getHighPrice(), 
+                   marketData.getLowPrice(), marketData.getClosePrice(), marketData.getVolume());
+        
+        // Get up to last HISTORY_SIZE candles before current one (excluding current)
+        List<MarketData> previousCandles = historicalData.stream()
+            .filter(data -> data.getTimestamp().isBefore(marketData.getTimestamp()))
+            .sorted((a, b) -> b.getTimestamp().compareTo(a.getTimestamp())) // Most recent first
+            .limit(HISTORY_SIZE)
+            .collect(Collectors.toList());
+
+        // Reverse to get chronological order (oldest first)
+        previousCandles = previousCandles.stream()
+            .sorted((a, b) -> a.getTimestamp().compareTo(b.getTimestamp()))
+            .collect(Collectors.toList());
+
+        logger.debug("Using {} previous candles for pattern analysis", previousCandles.size());
+
+        // Detect patterns
+        List<PatternDto> detectedPatterns = patternAnalysisService.detectPatterns(marketData, previousCandles);
+        
+        logger.debug("Detected {} patterns: {}", detectedPatterns.size(), 
+                   detectedPatterns.stream()
+                       .map(p -> p.getName() + "(" + String.format("%.2f", p.getConfidence()) + ")")
+                       .collect(Collectors.joining(", ")));
+
+        return new MarketDataWithPatternsDto(marketData, detectedPatterns);
+    }
+
+    /**
+     * Get market data by symbol with patterns detected for the latest entry.
+     * 
+     * @param symbol Stock symbol
+     * @return MarketDataWithPatternsDto or empty Optional if symbol not found
+     */
+    public Optional<MarketDataWithPatternsDto> findBySymbolWithPatterns(String symbol) {
+        List<MarketData> allData = findBySymbol(symbol);
+        if (allData.isEmpty()) {
+            return Optional.empty();
+        }
+
+        // Latest entry is first (ordered by timestamp DESC)
+        MarketData latest = allData.get(0);
+        
+        // Get all previous data for pattern analysis
+        return Optional.of(getWithPatterns(latest, allData));
     }
 }
