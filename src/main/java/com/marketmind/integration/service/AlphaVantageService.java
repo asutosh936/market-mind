@@ -36,9 +36,11 @@ public class AlphaVantageService {
     private final MarketDataRepository marketDataRepository;
     private final AlphaVantageRateLimiter rateLimiter;
 
-    public AlphaVantageService(RestTemplate restTemplate, MarketDataRepository marketDataRepository) {
+    public AlphaVantageService(RestTemplate restTemplate, MarketDataRepository marketDataRepository, 
+                              AlphaVantageRateLimiter rateLimiter) {
         this.restTemplate = restTemplate;
         this.marketDataRepository = marketDataRepository;
+        this.rateLimiter = rateLimiter;
     }
 
     /**
@@ -49,6 +51,16 @@ public class AlphaVantageService {
     public MarketData getQuote(String symbol) {
         logger.info("Fetching QUOTE for symbol={}", symbol);
         try {
+            // Check rate limit before making API call
+            if (!rateLimiter.canMakeRequest("global")) {
+                long secondsUntilReset = rateLimiter.getSecondsUntilReset("global");
+                logger.warn("Rate limit exceeded for QUOTE request. Remaining requests: {}, Reset in {} seconds",
+                           rateLimiter.getRemainingRequests("global"), secondsUntilReset);
+                // Block the current thread to make the system self-regulating
+                logger.info("Blocking request for {} seconds until rate limit window resets", secondsUntilReset);
+                Thread.sleep(secondsUntilReset * 1000);
+            }
+
             String url = String.format("%s?function=%s&symbol=%s&apikey=%s",
                     BASE_URL, QUOTE_FUNCTION, symbol.toUpperCase(), apiKey);
 
@@ -62,6 +74,9 @@ public class AlphaVantageService {
                 }
             }
             logger.warn("No quote data received for symbol={}", symbol);
+        } catch (InterruptedException e) {
+            logger.warn("Rate limit blocking was interrupted for symbol={}", symbol);
+            Thread.currentThread().interrupt();
         } catch (RestClientException e) {
             logger.error("Failed to fetch quote for symbol={}: {}", symbol, e.getMessage());
         } catch (Exception e) {
@@ -78,6 +93,15 @@ public class AlphaVantageService {
     public MarketData getIntraDayLatest(String symbol) {
         logger.info("Fetching INTRADAY latest for symbol={}", symbol);
         try {
+            // Check rate limit before making API call
+            if (!rateLimiter.canMakeRequest("global")) {
+                long secondsUntilReset = rateLimiter.getSecondsUntilReset("global");
+                logger.warn("Rate limit exceeded for INTRADAY request. Remaining requests: {}, Reset in {} seconds",
+                           rateLimiter.getRemainingRequests("global"), secondsUntilReset);
+                logger.info("Blocking request for {} seconds until rate limit window resets", secondsUntilReset);
+                Thread.sleep(secondsUntilReset * 1000);
+            }
+
             String url = String.format("%s?function=%s&symbol=%s&interval=1min&apikey=%s",
                     BASE_URL, INTRADAY_FUNCTION, symbol.toUpperCase(), apiKey);
 
@@ -90,6 +114,9 @@ public class AlphaVantageService {
                 }
             }
             logger.warn("No intraday data received for symbol={}", symbol);
+        } catch (InterruptedException e) {
+            logger.warn("Rate limit blocking was interrupted for symbol={}", symbol);
+            Thread.currentThread().interrupt();
         } catch (RestClientException e) {
             logger.error("Failed to fetch intraday for symbol={}: {}", symbol, e.getMessage());
         } catch (Exception e) {
@@ -104,6 +131,15 @@ public class AlphaVantageService {
     public List<MarketData> getIntraDayHistory(String symbol) {
         logger.info("Fetching INTRADAY history for symbol={}", symbol);
         try {
+            // Check rate limit before making API call
+            if (!rateLimiter.canMakeRequest("global")) {
+                long secondsUntilReset = rateLimiter.getSecondsUntilReset("global");
+                logger.warn("Rate limit exceeded for INTRADAY HISTORY request. Remaining requests: {}, Reset in {} seconds",
+                           rateLimiter.getRemainingRequests("global"), secondsUntilReset);
+                logger.info("Blocking request for {} seconds until rate limit window resets", secondsUntilReset);
+                Thread.sleep(secondsUntilReset * 1000);
+            }
+
             String url = String.format("%s?function=%s&symbol=%s&interval=1min&apikey=%s",
                     BASE_URL, INTRADAY_FUNCTION, symbol.toUpperCase(), apiKey);
 
@@ -116,6 +152,9 @@ public class AlphaVantageService {
                 }
             }
             logger.warn("No intraday history received for symbol={}", symbol);
+        } catch (InterruptedException e) {
+            logger.warn("Rate limit blocking was interrupted for symbol={}", symbol);
+            Thread.currentThread().interrupt();
         } catch (RestClientException e) {
             logger.error("Failed to fetch intraday history for symbol={}: {}", symbol, e.getMessage());
         } catch (Exception e) {
@@ -131,6 +170,15 @@ public class AlphaVantageService {
     public MarketData getDailyLatest(String symbol) {
         logger.info("Fetching DAILY latest for symbol={}", symbol);
         try {
+            // Check rate limit before making API call
+            if (!rateLimiter.canMakeRequest("global")) {
+                long secondsUntilReset = rateLimiter.getSecondsUntilReset("global");
+                logger.warn("Rate limit exceeded for DAILY request. Remaining requests: {}, Reset in {} seconds",
+                           rateLimiter.getRemainingRequests("global"), secondsUntilReset);
+                logger.info("Blocking request for {} seconds until rate limit window resets", secondsUntilReset);
+                Thread.sleep(secondsUntilReset * 1000);
+            }
+
             String url = String.format("%s?function=%s&symbol=%s&apikey=%s",
                     BASE_URL, DAILY_FUNCTION, symbol.toUpperCase(), apiKey);
 
@@ -143,6 +191,9 @@ public class AlphaVantageService {
                 }
             }
             logger.warn("No daily data received for symbol={}", symbol);
+        } catch (InterruptedException e) {
+            logger.warn("Rate limit blocking was interrupted for symbol={}", symbol);
+            Thread.currentThread().interrupt();
         } catch (RestClientException e) {
             logger.error("Failed to fetch daily for symbol={}: {}", symbol, e.getMessage());
         } catch (Exception e) {
@@ -157,6 +208,15 @@ public class AlphaVantageService {
     public List<MarketData> getDailyHistory(String symbol) {
         logger.info("Fetching DAILY history for symbol={}", symbol);
         try {
+            // Check rate limit before making API call
+            if (!rateLimiter.canMakeRequest("global")) {
+                long secondsUntilReset = rateLimiter.getSecondsUntilReset("global");
+                logger.warn("Rate limit exceeded for DAILY HISTORY request. Remaining requests: {}, Reset in {} seconds",
+                           rateLimiter.getRemainingRequests("global"), secondsUntilReset);
+                logger.info("Blocking request for {} seconds until rate limit window resets", secondsUntilReset);
+                Thread.sleep(secondsUntilReset * 1000);
+            }
+
             String url = String.format("%s?function=%s&symbol=%s&outputsize=full&apikey=%s",
                     BASE_URL, DAILY_FUNCTION, symbol.toUpperCase(), apiKey);
 
@@ -169,6 +229,9 @@ public class AlphaVantageService {
                 }
             }
             logger.warn("No daily history received for symbol={}", symbol);
+        } catch (InterruptedException e) {
+            logger.warn("Rate limit blocking was interrupted for symbol={}", symbol);
+            Thread.currentThread().interrupt();
         } catch (RestClientException e) {
             logger.error("Failed to fetch daily history for symbol={}: {}", symbol, e.getMessage());
         } catch (Exception e) {
