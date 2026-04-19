@@ -100,4 +100,30 @@ public class MarketDataRepositoryTest {
 
         assertThat(repository.findAll()).isEmpty();
     }
+
+    @Test
+    public void testFindBySymbolIgnoreCaseOrderByTimestampDesc() {
+        repository.save(new MarketData("ibm", LocalDateTime.parse("2026-04-18T09:00:00"), 120.00, 125.00, 118.00, 123.00, 500000));
+        repository.save(new MarketData("IBM", LocalDateTime.parse("2026-04-18T10:00:00"), 123.00, 128.00, 122.00, 127.00, 520000));
+
+        List<MarketData> results = repository.findBySymbolIgnoreCaseOrderByTimestampDesc("IBM");
+        assertThat(results).hasSize(2);
+        assertThat(results.get(0).getTimestamp()).isAfter(results.get(1).getTimestamp());
+    }
+
+    @Test
+    public void testFindBySymbolAndTimestampBetweenOrderByTimestampAsc() {
+        repository.save(new MarketData("IBM", LocalDateTime.parse("2026-04-18T09:00:00"), 120.00, 125.00, 118.00, 123.00, 500000));
+        repository.save(new MarketData("IBM", LocalDateTime.parse("2026-04-18T10:00:00"), 123.00, 128.00, 122.00, 127.00, 520000));
+        repository.save(new MarketData("IBM", LocalDateTime.parse("2026-04-18T11:00:00"), 127.00, 130.00, 126.00, 129.00, 530000));
+
+        List<MarketData> results = repository.findBySymbolIgnoreCaseAndTimestampBetweenOrderByTimestampAsc(
+                "ibm",
+                LocalDateTime.parse("2026-04-18T09:30:00"),
+                LocalDateTime.parse("2026-04-18T10:30:00")
+        );
+
+        assertThat(results).hasSize(1);
+        assertThat(results.get(0).getTimestamp()).isEqualTo(LocalDateTime.parse("2026-04-18T10:00:00"));
+    }
 }

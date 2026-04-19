@@ -113,4 +113,31 @@ public class MarketDataServiceTest {
         List<MarketData> all = service.findAll();
         assertThat(all).isEmpty();
     }
+
+    @Test
+    public void testFindBySymbol() {
+        repository.save(new MarketData("CRM", LocalDateTime.parse("2026-04-18T09:00:00"), 250.00, 255.00, 248.00, 252.00, 400000));
+        repository.save(new MarketData("CRM", LocalDateTime.parse("2026-04-18T10:00:00"), 252.00, 258.00, 251.00, 256.00, 420000));
+        repository.save(new MarketData("ORCL", LocalDateTime.parse("2026-04-18T10:00:00"), 80.00, 83.00, 79.00, 82.00, 300000));
+
+        List<MarketData> results = service.findBySymbol("CRM");
+        assertThat(results).hasSize(2);
+        assertThat(results.get(0).getTimestamp()).isAfterOrEqualTo(results.get(1).getTimestamp());
+    }
+
+    @Test
+    public void testFindBySymbolAndRange() {
+        repository.save(new MarketData("CRM", LocalDateTime.parse("2026-04-18T09:00:00"), 250.00, 255.00, 248.00, 252.00, 400000));
+        repository.save(new MarketData("CRM", LocalDateTime.parse("2026-04-18T10:00:00"), 252.00, 258.00, 251.00, 256.00, 420000));
+        repository.save(new MarketData("CRM", LocalDateTime.parse("2026-04-18T11:00:00"), 256.00, 260.00, 255.00, 259.00, 430000));
+
+        List<MarketData> results = service.findBySymbolAndRange(
+                "CRM",
+                LocalDateTime.parse("2026-04-18T09:30:00"),
+                LocalDateTime.parse("2026-04-18T10:30:00")
+        );
+
+        assertThat(results).hasSize(1);
+        assertThat(results.get(0).getTimestamp()).isEqualTo(LocalDateTime.parse("2026-04-18T10:00:00"));
+    }
 }

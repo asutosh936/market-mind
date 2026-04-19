@@ -6,6 +6,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -39,6 +40,20 @@ public class MarketDataService {
         MarketData saved = repository.save(marketData);
         logger.debug("Saved market data id={}", saved.getId());
         return saved;
+    }
+
+    public List<MarketData> findBySymbol(String symbol) {
+        logger.debug("Searching market data by symbol={}", symbol);
+        List<MarketData> results = repository.findBySymbolIgnoreCaseOrderByTimestampDesc(symbol);
+        logger.info("Found {} records for symbol={}", results.size(), symbol);
+        return results;
+    }
+
+    public List<MarketData> findBySymbolAndRange(String symbol, LocalDateTime start, LocalDateTime end) {
+        logger.debug("Searching market data for symbol={} between {} and {}", symbol, start, end);
+        List<MarketData> results = repository.findBySymbolIgnoreCaseAndTimestampBetweenOrderByTimestampAsc(symbol, start, end);
+        logger.info("Found {} records for symbol={} in range", results.size(), symbol);
+        return results;
     }
 
     public void deleteById(Long id) {

@@ -41,7 +41,10 @@ public class MarketDataControllerTest {
         mockMvc.perform(get("/api/marketdata"))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$", hasSize(0)));
+                .andExpect(jsonPath("$.success", is(true)))
+                .andExpect(jsonPath("$.message", is("No data found")))
+                .andExpect(jsonPath("$.data", hasSize(0)))
+                .andExpect(jsonPath("$.count", is(0)));
     }
 
     @Test
@@ -153,5 +156,42 @@ public class MarketDataControllerTest {
     public void testDeleteMarketData_NotFound() throws Exception {
         mockMvc.perform(delete("/api/marketdata/999"))
                 .andExpect(status().isNotFound());
+    }
+
+    @Test
+    public void testGetMarketDataBySymbol() throws Exception {
+        repository.save(new MarketData("NFLX", LocalDateTime.parse("2026-04-18T09:00:00"), 500.00, 510.00, 495.00, 505.00, 700000));
+        repository.save(new MarketData("NFLX", LocalDateTime.parse("2026-04-18T10:00:00"), 505.00, 515.00, 500.00, 510.00, 750000));
+        repository.save(new MarketData("AAPL", LocalDateTime.parse("2026-04-18T10:00:00"), 150.00, 155.00, 149.00, 154.50, 1000000));
+
+        mockMvc.perform(get("/api/marketdata/symbol/NFLX"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.symbol", is("NFLX")))
+                .andExpect(jsonPath("$.id", notNullValue()));
+    }
+
+    @Test
+    public void testGetMarketDataBySymbolAndRange() throws Exception {
+        repository.save(new MarketData("NFLX", LocalDateTime.parse("2026-04-18T09:00:00"), 500.00, 510.00, 495.00, 505.00, 700000));
+        repository.save(new MarketData("NFLX", LocalDateTime.parse("2026-04-18T10:00:00"), 505.00, 515.00, 500.00, 510.00, 750000));
+        repository.save(new MarketData("NFLX", LocalDateTime.parse("2026-04-18T11:00:00"), 510.00, 520.00, 505.00, 515.00, 780000));
+
+        mockMvc.perform(get("/api/marketdata/symbol/NFLX/range")
+                .param("start", "2026-04-18T09:30:00")
+                .param("end", "2026-04-18T10:30:00"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success", is(true)))
+                .andExpect(jsonPath("$.message", is("Data retrieved successfully")))
+                .andExpect(jsonPath("$.data", hasSize(1)))
+                .andExpect(jsonPath("$.count", is(1)))
+                .andExpect(jsonPath("$.data[0].timestamp", is("2026-04-18T10:00:00")));
+    }
+
+    @Test
+    public void testGetMarketDataBySymbolAndRange_InvalidRange() throws Exception {
+        mockMvc.perform(get("/api/marketdata/symbol/NFLX/range")
+                .param("start", "2026-04-18T11:00:00")
+                .param("end", "2026-04-18T10:00:00"))
+                .andExpect(status().isBadRequest());
     }
 }
