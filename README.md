@@ -45,7 +45,7 @@ Get your free API key at: https://www.alphavantage.co/
 All endpoints are served under:
 
 ```text
-http://localhost:8080/api/marketdata
+http://localhost:8080/market-mind/api/marketdata
 ```
 
 ## Core CRUD Endpoints
@@ -58,7 +58,7 @@ http://localhost:8080/api/marketdata
 
 **Curl**
 ```bash
-curl -X GET http://localhost:8080/api/marketdata
+curl -X GET http://localhost:8080/market-mind/api/marketdata
 ```
 
 **Sample Success Response**
@@ -101,7 +101,7 @@ curl -X GET http://localhost:8080/api/marketdata
 
 **Curl**
 ```bash
-curl -X GET http://localhost:8080/api/marketdata/1
+curl -X GET http://localhost:8080/market-mind/api/marketdata/1
 ```
 
 **Sample Success Response**
@@ -131,7 +131,7 @@ HTTP/1.1 404 Not Found
 
 **Curl**
 ```bash
-curl -X POST http://localhost:8080/api/marketdata \
+curl -X POST http://localhost:8080/market-mind/api/marketdata \
   -H "Content-Type: application/json" \
   -d '{
     "symbol": "AAPL",
@@ -165,7 +165,7 @@ curl -X POST http://localhost:8080/api/marketdata \
 
 **Curl**
 ```bash
-curl -X PUT http://localhost:8080/api/marketdata/1 \
+curl -X PUT http://localhost:8080/market-mind/api/marketdata/1 \
   -H "Content-Type: application/json" \
   -d '{
     "symbol": "AAPL",
@@ -204,7 +204,7 @@ HTTP/1.1 404 Not Found
 
 **Curl**
 ```bash
-curl -X DELETE http://localhost:8080/api/marketdata/1
+curl -X DELETE http://localhost:8080/market-mind/api/marketdata/1
 ```
 
 **Success**
@@ -228,7 +228,7 @@ The following endpoints support real-time quote retrieval and history lookups. W
 
 **Curl**
 ```bash
-curl -X GET http://localhost:8080/api/marketdata/test/patterns
+curl -X GET http://localhost:8080/market-mind/api/marketdata/test/patterns
 ```
 
 **Sample Response**
@@ -257,7 +257,7 @@ curl -X GET http://localhost:8080/api/marketdata/test/patterns
 
 **Curl**
 ```bash
-curl -X GET http://localhost:8080/api/marketdata/symbol/AAPL
+curl -X GET http://localhost:8080/market-mind/api/marketdata/symbol/AAPL
 ```
 
 **Sample Response**
@@ -279,7 +279,7 @@ curl -X GET http://localhost:8080/api/marketdata/symbol/AAPL
 HTTP/1.1 404 Not Found
 ```
 
-### 7. Get Latest Intraday Bar
+### 8. Get Latest Intraday Bar
 
 - Endpoint: `GET /api/marketdata/intraday/{symbol}`
 - Description: Retrieves the latest 1-minute intraday bar from Alpha Vantage.
@@ -287,7 +287,7 @@ HTTP/1.1 404 Not Found
 
 **Curl**
 ```bash
-curl -X GET http://localhost:8080/api/marketdata/intraday/AAPL
+curl -X GET http://localhost:8080/market-mind/api/marketdata/intraday/AAPL
 ```
 
 **Sample Response**
@@ -309,14 +309,14 @@ curl -X GET http://localhost:8080/api/marketdata/intraday/AAPL
 HTTP/1.1 404 Not Found
 ```
 
-### 8. Get Intraday History
+### 9. Get Intraday History
 
 - Endpoint: `GET /api/marketdata/intraday/{symbol}/history`
 - Description: Retrieves intraday history from Alpha Vantage.
 
 **Curl**
 ```bash
-curl -X GET http://localhost:8080/api/marketdata/intraday/AAPL/history
+curl -X GET http://localhost:8080/market-mind/api/marketdata/intraday/AAPL/history
 ```
 
 **Sample Response**
@@ -351,14 +351,14 @@ curl -X GET http://localhost:8080/api/marketdata/intraday/AAPL/history
 }
 ```
 
-### 9. Get Latest Daily Bar
+### 10. Get Latest Daily Bar
 
 - Endpoint: `GET /api/marketdata/daily/{symbol}`
 - Description: Retrieves the latest daily OHLCV data from Alpha Vantage.
 
 **Curl**
 ```bash
-curl -X GET http://localhost:8080/api/marketdata/daily/AAPL
+curl -X GET http://localhost:8080/market-mind/api/marketdata/daily/AAPL
 ```
 
 **Sample Response**
@@ -380,14 +380,14 @@ curl -X GET http://localhost:8080/api/marketdata/daily/AAPL
 HTTP/1.1 404 Not Found
 ```
 
-### 10. Get Daily History
+### 11. Get Daily History
 
 - Endpoint: `GET /api/marketdata/daily/{symbol}/history`
 - Description: Retrieves the full daily time series for a symbol from Alpha Vantage.
 
 **Curl**
 ```bash
-curl -X GET http://localhost:8080/api/marketdata/daily/AAPL/history
+curl -X GET http://localhost:8080/market-mind/api/marketdata/daily/AAPL/history
 ```
 
 **Sample Response**
@@ -422,7 +422,7 @@ curl -X GET http://localhost:8080/api/marketdata/daily/AAPL/history
 }
 ```
 
-### 11. Get Market Data by Symbol and Date Range
+### 12. Get Market Data by Symbol and Date Range
 
 - Endpoint: `GET /api/marketdata/symbol/{symbol}/range`
 - Query parameters: `start`, `end`, `includePatterns` (optional, default `true`)
@@ -430,7 +430,7 @@ curl -X GET http://localhost:8080/api/marketdata/daily/AAPL/history
 
 **Curl**
 ```bash
-curl -X GET "http://localhost:8080/api/marketdata/symbol/AAPL/range?start=2026-04-18T09:00:00&end=2026-04-18T11:00:00"
+curl -X GET "http://localhost:8080/market-mind/api/marketdata/symbol/AAPL/range?start=2026-04-18T09:00:00&end=2026-04-18T11:00:00"
 ```
 
 **Sample Response**
