@@ -278,6 +278,78 @@ curl -X GET "http://localhost:8080/market-mind/api/marketdata/symbol/AAPL/range?
 }
 ```
 
+## Phase IV Implementation - Pattern Detection and AI Trading Confidence
+
+Phase IV extends existing endpoints to return detected candlestick patterns alongside trading confidence, without introducing new API routes.
+
+### What Phase IV Adds
+- Existing endpoints now include:
+  - `detectedPatterns`: identified candlestick patterns for the latest market candle
+  - `tradingSignal`: buy/sell/hold recommendation with an AI-informed confidence score and reasoning
+- No new endpoints were added: the enhancement is purely in response payloads.
+- Pattern analysis and trading signal generation are enabled by default via `includePatterns=true`.
+- Use `includePatterns=false` to disable analysis and return `tradingSignal: null`.
+- If OpenAI is unavailable, the app falls back to deterministic rule-based signal generation.
+
+### Phase IV Curl Examples
+
+#### Get symbol quote with pattern analysis and trading confidence
+```bash
+curl -X GET "http://localhost:8080/market-mind/api/marketdata/symbol/AAPL"
+```
+
+#### Get symbol quote without pattern analysis
+```bash
+curl -X GET "http://localhost:8080/market-mind/api/marketdata/symbol/AAPL?includePatterns=false"
+```
+
+#### Get all market data with pattern analysis
+```bash
+curl -X GET "http://localhost:8080/market-mind/api/marketdata?includePatterns=true"
+```
+
+### Phase IV Response Example
+```json
+{
+  "id": 1,
+  "symbol": "AAPL",
+  "timestamp": "2026-04-18T16:00:00",
+  "openPrice": 150.0,
+  "highPrice": 155.0,
+  "lowPrice": 149.0,
+  "closePrice": 154.5,
+  "volume": 1000000,
+  "detectedPatterns": [
+    {
+      "name": "Bullish Engulfing",
+      "type": "BULLISH_ENGULFING",
+      "confidence": 0.92,
+      "description": "Bullish Engulfing pattern detected with strong momentum"
+    }
+  ],
+  "tradingSignal": {
+    "signal": "BUY",
+    "confidence": 78.0,
+    "reasoning": "Bullish reversal pattern with strong momentum suggests a buy opportunity"
+  }
+}
+```
+
+### AI Setup for Phase IV
+
+Set your OpenAI API key before starting the application:
+```bash
+export OPENAI_API_KEY=your-openai-api-key-here
+```
+
+The application can also be configured via `src/main/resources/application.properties`.
+
+### Phase IV Notes
+
+- `includePatterns=true` is the default.
+- A missing or invalid OpenAI key does not break the endpoint; the app will return a fallback `tradingSignal`.
+- Existing endpoints remain unchanged; only the response payload is enhanced.
+
 ### Caching Strategy
 
 - **Quote Data**: Cached for 1 minute

@@ -1,11 +1,12 @@
 package com.marketmind.model.dto;
 
 import com.marketmind.model.MarketData;
+import com.marketmind.service.TradingSignalAIService;
 import java.time.LocalDateTime;
 import java.util.List;
 
 /**
- * Extended Market Data DTO with detected patterns.
+ * Extended Market Data DTO with detected patterns and AI trading signals.
  * This is returned by analysis endpoints.
  */
 public class MarketDataWithPatternsDto {
@@ -18,6 +19,7 @@ public class MarketDataWithPatternsDto {
     private double closePrice;
     private long volume;
     private List<PatternDto> detectedPatterns;
+    private TradingSignalDto tradingSignal;
 
     public MarketDataWithPatternsDto() {}
 
@@ -31,6 +33,20 @@ public class MarketDataWithPatternsDto {
         this.closePrice = marketData.getClosePrice();
         this.volume = marketData.getVolume();
         this.detectedPatterns = detectedPatterns;
+        this.tradingSignal = null; // Will be set by AI service
+    }
+
+    public MarketDataWithPatternsDto(MarketData marketData, List<PatternDto> detectedPatterns, TradingSignalDto tradingSignal) {
+        this.id = marketData.getId();
+        this.symbol = marketData.getSymbol();
+        this.timestamp = marketData.getTimestamp();
+        this.openPrice = marketData.getOpenPrice();
+        this.highPrice = marketData.getHighPrice();
+        this.lowPrice = marketData.getLowPrice();
+        this.closePrice = marketData.getClosePrice();
+        this.volume = marketData.getVolume();
+        this.detectedPatterns = detectedPatterns;
+        this.tradingSignal = tradingSignal;
     }
 
     // Getters and Setters
@@ -104,5 +120,13 @@ public class MarketDataWithPatternsDto {
 
     public void setDetectedPatterns(List<PatternDto> detectedPatterns) {
         this.detectedPatterns = detectedPatterns;
+    }
+
+    public TradingSignalDto getTradingSignal() {
+        return tradingSignal;
+    }
+
+    public void setTradingSignal(TradingSignalDto tradingSignal) {
+        this.tradingSignal = tradingSignal;
     }
 }

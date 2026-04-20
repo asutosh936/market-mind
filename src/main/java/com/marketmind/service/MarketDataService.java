@@ -3,6 +3,7 @@ package com.marketmind.service;
 import com.marketmind.model.MarketData;
 import com.marketmind.model.dto.PatternDto;
 import com.marketmind.model.dto.MarketDataWithPatternsDto;
+import com.marketmind.model.dto.TradingSignalDto;
 import com.marketmind.repository.MarketDataRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,6 +25,9 @@ public class MarketDataService {
 
     @Autowired
     private PatternAnalysisService patternAnalysisService;
+
+    @Autowired
+    private TradingSignalAIService tradingSignalAIService;
 
     public List<MarketData> findAll() {
         logger.debug("Fetching all market data records");
@@ -104,7 +108,46 @@ public class MarketDataService {
                        .map(p -> p.getName() + "(" + String.format("%.2f", p.getConfidence()) + ")")
                        .collect(Collectors.joining(", ")));
 
-        return new MarketDataWithPatternsDto(marketData, detectedPatterns);
+        String priceTrend = computeFiveDayTrend(previousCandles);
+        logger.debug("Computed 5-day price trend for {}: {}", marketData.getSymbol(), priceTrend);
+
+        // Generate AI-powered trading signal
+        TradingSignalAIService.TradingSignalAnalysis aiAnalysis =
+            tradingSignalAIService.analyzePatternsForTradingSignal(
+                marketData,
+                priceTrend,
+                detectedPatterns
+            );
+
+        TradingSignalDto tradingSignal = new TradingSignalDto(
+            aiAnalysis.getSignal(),
+            aiAnalysis.getConfidence(),
+            aiAnalysis.getReasoning(),
+            aiAnalysis.getRiskNote()
+        );
+
+        logger.debug("AI Trading Signal: {} ({}%) - {}", tradingSignal.getSignal(),
+                   String.format("%.1f", tradingSignal.getConfidence()), tradingSignal.getReasoning());
+
+        return new MarketDataWithPatternsDto(marketData, detectedPatterns, tradingSignal);
+    }
+
+    private String computeFiveDayTrend(List<MarketData> previousCandles) {
+        if (previousCandles.isEmpty()) {
+            return "Insufficient trend data";
+        }
+
+        double firstClose = previousCandles.get(0).getClosePrice();
+        double lastClose = previousCandles.get(previousCandles.size() - 1).getClosePrice();
+        double percentChange = firstClose == 0 ? 0 : ((lastClose - firstClose) / firstClose) * 100;
+
+        if (percentChange > 1.0) {
+            return String.format("Uptrend (%.2f%% over 5 bars)", percentChange);
+        } else if (percentChange < -1.0) {
+            return String.format("Downtrend (%.2f%% over 5 bars)", percentChange);
+        } else {
+            return String.format("Sideways (%.2f%% over 5 bars)", percentChange);
+        }
     }
 
     /**
